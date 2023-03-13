@@ -16,7 +16,7 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
+    queryset = Post.objects.all().select_related('author')
     serializer_class = PostSerializer
     permission_classes = (IsAuthorOrReadOnly, permissions.AllowAny)
     pagination_class = pagination.LimitOffsetPagination
@@ -55,8 +55,8 @@ class FollowViewSet(mixins.CreateModelMixin,
     search_fields = ('following__username', 'user__username',)
 
     def get_queryset(self):
-        new_queryset = Follow.objects.filter(user=self.request.user)
-        return new_queryset
+        user = get_object_or_404(User, username=self.request.user)
+        return Follow.objects.filter(user=user)
 
     def perform_create(self, serializer):
         return serializer.save(user=self.request.user)
